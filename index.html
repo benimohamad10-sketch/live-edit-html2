@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b3b82">
+<title>Code Studio — Live HTML Editor</title>
+<style>
+:root{--navy:#082f6b;--blue:#1264d8;--sky:#38bdf8;--bg:#eef5ff;--ink:#14213d;--muted:#64748b;--line:#d9e5f5;--panel:#fff;--dark:#071426}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+.topbar{background:linear-gradient(115deg,#082f6b,#1264d8 68%,#38bdf8);color:#fff;padding:18px clamp(14px,3vw,32px);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;box-shadow:0 6px 24px #0b3b8226}
+.brand{display:flex;align-items:center;gap:12px}.logo{width:44px;height:44px;border-radius:13px;background:#ffffff20;display:grid;place-items:center;font-size:23px;border:1px solid #ffffff50}.brand h1{font-size:clamp(18px,2.5vw,24px);margin:0}.brand p{margin:4px 0 0;color:#dbeafe;font-size:13px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:10px 14px;cursor:pointer;transition:transform .15s,filter .15s}button:hover{filter:brightness(1.05);transform:translateY(-1px)}button:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid #7dd3fc;outline-offset:2px}.btn-light{background:#fff;color:var(--navy)}.btn-glass{background:#ffffff20;color:#fff;border:1px solid #ffffff55}.btn-blue{background:var(--blue);color:white}.btn-soft{background:#e7f1ff;color:#124a99}.btn-soft.active{background:#082f6b;color:#fff}
+main{max-width:1600px;margin:auto;padding:20px clamp(12px,2vw,26px) 28px}.intro{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}.intro h2{margin:0;font-size:19px}.intro p{margin:5px 0 0;color:var(--muted);font-size:13px}.status{display:flex;align-items:center;gap:7px;background:#dcfce7;color:#166534;padding:7px 11px;border-radius:99px;font-size:12px;font-weight:800}.dot{width:7px;height:7px;border-radius:50%;background:#22c55e}
+.workspace{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:stretch}.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 5px 20px #0f38700b;min-width:0}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 15px;border-bottom:1px solid var(--line);background:#f8fbff}.panel-head strong{font-size:14px}.tiny{font-size:12px;color:var(--muted)}
+.tabs{display:flex;gap:5px;padding:9px;background:#edf4ff;border-bottom:1px solid var(--line)}.tab{background:transparent;color:#526782;padding:9px 13px;border-radius:8px;font-size:13px}.tab.active{background:#1264d8;color:#fff;box-shadow:0 3px 8px #1264d833}
+.search-bar{display:flex;flex-wrap:wrap;gap:8px;padding:10px 12px;background:#f1f7ff;border-bottom:1px solid var(--line);align-items:center}
+.search-bar input[type=text]{flex:1 1 140px;min-width:0;padding:9px 11px;border:1px solid #c5d8f0;border-radius:8px;font:13px Consolas,monospace;background:#fff;color:var(--ink)}
+.search-group{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.search-bar .icon-btn{padding:8px 10px;font-size:12px;border-radius:8px;background:#fff;border:1px solid #c5d8f0;color:#0f3a7a}
+.search-bar .icon-btn.primary{background:#1264d8;color:#fff;border-color:#1264d8}
+.search-bar .icon-btn.danger{background:#fee2e2;border-color:#fecaca;color:#991b1b}
+.search-meta{font-size:11px;color:var(--muted);padding:2px 4px;min-width:70px}
+.check{display:flex;align-items:center;gap:4px;font-size:11px;color:#334155;user-select:none}
+.check input{accent-color:#1264d8}
+.editors{position:relative}.editor{display:none;width:100%;height:clamp(300px,55vh,620px);resize:vertical;border:0;outline:none;padding:18px;background:var(--dark);color:#dbeafe;font:14px/1.65 Consolas,"Courier New",monospace;tab-size:2;white-space:pre;overflow:auto}.editor.active{display:block}.editor-foot{display:flex;justify-content:space-between;gap:10px;padding:9px 13px;background:#f8fbff;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+.preview-tools{display:flex;align-items:center;gap:7px}.preview-wrap{background:#dce8f8;padding:10px;min-height:360px;position:relative}.preview-frame{display:block;width:100%;height:clamp(350px,58vh,650px);border:0;border-radius:9px;background:#fff;box-shadow:0 2px 10px #102c5015}
+.inspect-info{margin:0 10px;padding:8px 12px;background:#0b1220;color:#cbd5e1;border:1px solid #1e293b;border-radius:10px;font:12px/1.5 Consolas,monospace;display:none;gap:8px;align-items:center;justify-content:space-between}
+.inspect-info.show{display:flex}
+.inspect-info code{background:#1e293b;padding:2px 6px;border-radius:5px;color:#7dd3fc}
+.inspect-info .dot2{width:8px;height:8px;border-radius:50%;background:#38bdf8;display:inline-block;animation:pulse 1s infinite}
+@keyframes pulse{0%{opacity:1}50%{opacity:.4}100%{opacity:1}}
+.error-console{margin:10px 10px 10px 10px;background:#0f172a;border:1px solid #1e293b;border-radius:10px;overflow:hidden;display:none}
+.error-console.show{display:block}
+.error-head{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#1e293b;color:#f8fafc;font-size:12px;font-weight:800}
+.error-head button{background:#ffffff15;color:#fff;padding:4px 8px;border-radius:6px;font-size:11px}
+.error-body{padding:10px 12px;max-height:180px;overflow:auto;font:12px/1.6 Consolas,monospace;white-space:pre-wrap;color:#fca5a5}
+.error-body .ok{color:#86efac}
+.help{margin-top:16px;padding:13px 16px;border:1px solid #bfdbfe;background:#eff6ff;border-radius:12px;color:#1e40af;font-size:13px;line-height:1.6}.help strong{color:#123d83}.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:11px 16px;border-radius:10px;box-shadow:0 8px 30px #0003;font-size:13px;z-index:5;display:none;max-width:calc(100% - 24px);text-align:center}
+kbd{background:#e2e8f0;border:1px solid #cbd5e1;border-bottom-width:2px;padding:1px 5px;border-radius:4px;font-size:11px;font-family:Consolas,monospace}
+@media(min-width:900px){.workspace{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.editors{min-height:0}.panel{min-height:500px}}
+@media(max-width:520px){.topbar{align-items:flex-start}.actions{width:100%}.actions button{flex:1;padding:10px 9px;font-size:12px}main{padding-top:14px}.panel-head{padding:11px}.tab{flex:1;padding:10px 5px}.editor{font-size:13px;padding:13px;height:360px}.preview-wrap{padding:6px}.preview-frame{height:420px}.help{font-size:12px}.search-bar{flex-direction:column;align-items:stretch}.search-group{width:100%}.search-group input{flex:1}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><div class="logo" aria-hidden="true">⌘</div><div><h1>Code Studio</h1><p>Live Editor + Search + Error + Hover Inspect</p></div></div>
+  <div class="actions"><button class="btn-glass" id="resetBtn" type="button">↺ Reset</button><button class="btn-light" id="downloadBtn" type="button">⬇ Download</button></div>
+</header>
+<main>
+  <div class="intro"><div><h2>Ruang kerja coding</h2><p>Arahkan kursor di preview untuk inspeksi elemen langsung.</p></div><div class="status"><span class="dot"></span> Preview aktif</div></div>
+  <div class="workspace">
+    <section class="panel" aria-label="Editor kode">
+      <div class="panel-head"><strong>🧑‍💻 Editor Kode</strong><span class="tiny" id="activeLanguage">Mode HTML</span></div>
+      <div class="tabs" role="tablist"><button class="tab active" role="tab" aria-selected="true" data-target="htmlCode">HTML</button><button class="tab" role="tab" aria-selected="false" data-target="cssCode">CSS</button><button class="tab" role="tab" aria-selected="false" data-target="jsCode">JS</button></div>
+      <div class="search-bar" id="searchBar">
+        <div class="search-group">
+          <input id="searchInput" type="text" placeholder="🔍 Cari kata/kode..." aria-label="Cari">
+          <input id="replaceInput" type="text" placeholder="↔ Ganti..." aria-label="Ganti">
+        </div>
+        <div class="search-group">
+          <button class="icon-btn" id="prevBtn" title="Sebelumnya">▲</button>
+          <button class="icon-btn" id="nextBtn" title="Berikutnya">▼</button>
+          <button class="icon-btn primary" id="replaceBtn">Ganti</button>
+          <button class="icon-btn danger" id="replaceAllBtn">Ganti Semua</button>
+        </div>
+        <div class="search-group">
+          <label class="check"><input type="checkbox" id="caseSensitive"> Aa</label>
+          <label class="check"><input type="checkbox" id="wholeWord"> Kata utuh</label>
+          <span class="search-meta" id="searchMeta">0 ditemukan</span>
+        </div>
+      </div>
+      <div class="editors">
+        <textarea id="htmlCode" class="editor active" spellcheck="false"><div class="card">
+  <div class="badge">BELAJAR CODING</div>
+  <h1>Halo, Beni! 👋</h1>
+  <p>Selamat datang di Code Studio. Arahkan kursor ke elemen di preview untuk melihat detailnya.</p>
+  <button onclick="sapa()">Coba Klik Saya</button>
+  <p id="pesan"></p>
+</div></textarea>
+        <textarea id="cssCode" class="editor" spellcheck="false">* { box-sizing: border-box; }
+body { margin:0; padding:28px; font-family: Arial, sans-serif; background: linear-gradient(135deg, #eff6ff, #dbeafe); color:#172554; }
+.card { max-width:440px; margin:35px auto; padding:30px; text-align:center; background:white; border-radius:20px; box-shadow:0 15px 40px #1e40af20; }
+.badge { display:inline-block; padding:7px 12px; border-radius:99px; background:#dbeafe; color:#1d4ed8; font-size:11px; font-weight:bold; }
+h1 { color:#1d4ed8; } p { line-height:1.7; color:#475569; }
+button { padding:12px 18px; border:0; border-radius:10px; background:#2563eb; color:white; font-weight:bold; cursor:pointer; }
+button:hover { background:#1d4ed8; }</textarea>
+        <textarea id="jsCode" class="editor" spellcheck="false">function sapa() {
+  const pesan = document.getElementById("pesan");
+  if (pesan) {
+    pesan.textContent = "Hebat! Hover Inspect aktif 🚀 Arahkan ke elemen lain!";
+  } else {
+    alert("JS berjalan!");
+  }
+}</textarea>
+      </div>
+      <div class="editor-foot"><span><kbd>Ctrl+F</kbd> cari • <kbd>Ctrl+I</kbd> inspect</span><span id="charCount">0 karakter</span></div>
+    </section>
+    <section class="panel" aria-label="Pratinjau hasil">
+      <div class="panel-head"><strong>👁️ Live Preview</strong><div class="preview-tools">
+        <button class="btn-soft" id="inspectBtn" type="button" title="Aktifkan inspeksi hover">🔍 Inspect: OFF</button>
+        <button class="btn-soft" id="refreshBtn" type="button">⟳ Jalankan</button>
+      </div></div>
+      <div class="preview-wrap"><iframe class="preview-frame" id="preview" title="Pratinjau" sandbox="allow-scripts"></iframe></div>
+      <div class="inspect-info" id="inspectInfo"><span><span class="dot2"></span> <span id="inspectText">Arahkan kursor ke elemen di preview</span></span><code id="inspectSize"></code></div>
+      <div class="error-console" id="errorConsole">
+        <div class="error-head"><span>⚠️ Console Error</span><div style="display:flex;gap:6px"><button id="clearErrorBtn">Bersihkan</button><button id="closeErrorBtn">Tutup ✕</button></div></div>
+        <div class="error-body" id="errorBody">Tidak ada error.</div>
+      </div>
+    </section>
+  </div>
+  <div class="help"><strong>Fitur Hover Inspect Baru:</strong> Klik tombol <strong>🔍 Inspect</strong> di atas preview untuk ON. Lalu arahkan kursor ke elemen apa saja di preview — akan muncul highlight biru + tooltip dengan tag, id, class, dan ukuran. Klik elemen saat inspect aktif untuk auto-loncat ke kodenya di editor HTML. Tekan <kbd>Ctrl+I</kbd> untuk toggle cepat.</div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(() => {
+  "use strict";
+  const htmlCode = document.getElementById("htmlCode");
+  const cssCode = document.getElementById("cssCode");
+  const jsCode = document.getElementById("jsCode");
+  const preview = document.getElementById("preview");
+  const editors = [htmlCode, cssCode, jsCode];
+  const defaults = editors.map(el => el.value);
+  const tabNames = {htmlCode:"HTML", cssCode:"CSS", jsCode:"JavaScript"};
+  let toastTimer;
+  const searchInput = document.getElementById("searchInput");
+  const replaceInput = document.getElementById("replaceInput");
+  const prevBtn = document.getElementById("prevBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const replaceBtn = document.getElementById("replaceBtn");
+  const replaceAllBtn = document.getElementById("replaceAllBtn");
+  const caseSensitive = document.getElementById("caseSensitive");
+  const wholeWord = document.getElementById("wholeWord");
+  const searchMeta = document.getElementById("searchMeta");
+  let matches=[]; let currentIndex=-1;
+
+  // Inspect elements
+  const inspectBtn = document.getElementById("inspectBtn");
+  const inspectInfo = document.getElementById("inspectInfo");
+  const inspectText = document.getElementById("inspectText");
+  const inspectSize = document.getElementById("inspectSize");
+  let inspectEnabled = false;
+
+  function notify(m){ const t=document.getElementById("toast"); t.textContent=m; t.style.display="block"; clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.style.display="none",2600); }
+  const errorConsole=document.getElementById("errorConsole");
+  const errorBody=document.getElementById("errorBody");
+  function showError(msg,type="error"){ errorConsole.classList.add("show"); const time=new Date().toLocaleTimeString("id-ID"); const line=document.createElement("div"); line.className= type==="ok"?"ok":""; line.textContent=`[${time}] ${msg}`; if(errorBody.textContent.includes("Tidak ada error")) errorBody.textContent=""; errorBody.appendChild(line); errorBody.scrollTop=errorBody.scrollHeight; }
+  function clearErrors(){ errorBody.textContent="Tidak ada error."; errorConsole.classList.remove("show"); }
+  document.getElementById("clearErrorBtn").addEventListener("click", clearErrors);
+  document.getElementById("closeErrorBtn").addEventListener("click", ()=>errorConsole.classList.remove("show"));
+
+  // messages from iframe
+  window.addEventListener("message", (e)=>{
+    if(!e.data) return;
+    if(e.data.type==="code-error") showError(e.data.message);
+    if(e.data.type==="code-log") showError(e.data.message,"ok");
+    if(e.data.type==="inspect-hover"){
+      const d=e.data;
+      inspectText.innerHTML = `&lt;<b>${d.tag}</b>${d.id?` id="${d.id}"`:''}${d.className?` class="${d.className}"`:''}&gt;`;
+      inspectSize.textContent = `${d.w} × ${d.h}px • ${d.path}`;
+    }
+    if(e.data.type==="inspect-click"){
+      // try to find in htmlCode and jump
+      const needle = e.data.outer ? e.data.outer.slice(0,80) : e.data.tag;
+      searchInput.value = e.data.tag;
+      // switch to HTML tab
+      document.querySelectorAll(".tab").forEach((tab,i)=>{
+        const isHtml = tab.dataset.target==="htmlCode";
+        tab.classList.toggle("active", isHtml);
+        tab.setAttribute("aria-selected", String(isHtml));
+      });
+      editors.forEach(ed=>ed.classList.toggle("active", ed.id==="htmlCode"));
+      document.getElementById("activeLanguage").textContent="Mode HTML";
+      runSearch(true);
+      notify("Elemen <"+e.data.tag+"> ditemukan di HTML");
+    }
+  });
+
+  function toggleInspect(){
+    inspectEnabled = !inspectEnabled;
+    inspectBtn.textContent = inspectEnabled ? "🔍 Inspect: ON" : "🔍 Inspect: OFF";
+    inspectBtn.classList.toggle("active", inspectEnabled);
+    inspectInfo.classList.toggle("show", inspectEnabled);
+    if(inspectEnabled) inspectText.textContent="Arahkan kursor ke elemen di preview...";
+    // send to iframe
+    try{
+      preview.contentWindow && preview.contentWindow.postMessage({type:"inspect-toggle", enabled: inspectEnabled}, "*");
+    }catch(_){}
+    notify(inspectEnabled ? "Mode Inspect AKTIF — arahkan kursor di preview" : "Mode Inspect dimatikan");
+  }
+  inspectBtn.addEventListener("click", toggleInspect);
+
+  function buildDocument(){
+    const css = cssCode.value.replace(/<\/style/gi, "<\\/style");
+    const jsRaw = jsCode.value;
+    const coreScript = `
+<script>
+(function(){
+  let inspectEnabled = false;
+  let overlay=null, tooltip=null, lastEl=null;
+  function ensureUI(){
+    if(overlay) return;
+    overlay = document.createElement('div');
+    overlay.style.cssText='position:fixed;pointer-events:none;z-index:999999;border:2px solid #1264d8;background:rgba(18,100,216,0.15);border-radius:4px;transition:all .06s;display:none;';
+    document.body.appendChild(overlay);
+    tooltip = document.createElement('div');
+    tooltip.style.cssText='position:fixed;pointer-events:none;z-index:1000000;background:#0f172a;color:#e2e8f0;padding:5px 8px;border-radius:6px;font:11px/1.4 Consolas,monospace;max-width:300px;box-shadow:0 4px 12px rgba(0,0,0,.3);display:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+    document.body.appendChild(tooltip);
+  }
+  function getPath(el){
+    if(!el) return '';
+    const parts=[]; let cur=el;
+    for(let i=0;i<4 && cur && cur.tagName; i++){ parts.unshift(cur.tagName.toLowerCase()); cur=cur.parentElement; }
+    return parts.join(' > ');
+  }
+  function onMove(e){
+    if(!inspectEnabled) return;
+    ensureUI();
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    if(!el || el===overlay || el===tooltip) return;
+    if(el===document.documentElement || el===document.body) { overlay.style.display='none'; tooltip.style.display='none'; return; }
+    lastEl=el;
+    const rect = el.getBoundingClientRect();
+    overlay.style.display='block';
+    overlay.style.left = (rect.left + window.scrollX) + 'px';
+    overlay.style.top = (rect.top + window.scrollY) + 'px';
+    overlay.style.width = rect.width + 'px';
+    overlay.style.height = rect.height + 'px';
+    // tooltip content
+    let tag = el.tagName.toLowerCase();
+    let id = el.id ? '#'+el.id : '';
+    let cls = el.className && typeof el.className==='string' ? '.'+el.className.trim().split(/\\s+/).slice(0,2).join('.') : '';
+    if(cls==='.') cls='';
+    tooltip.textContent = '<'+tag+'>'+id+cls+' • ' + Math.round(rect.width)+'×'+Math.round(rect.height);
+    tooltip.style.display='block';
+    let tx = e.clientX + 12, ty = e.clientY + 16;
+    if(tx + 200 > window.innerWidth) tx = e.clientX - 210;
+    if(ty + 30 > window.innerHeight) ty = e.clientY - 36;
+    tooltip.style.left = tx + 'px';
+    tooltip.style.top = ty + 'px';
+    parent.postMessage({type:'inspect-hover', tag: tag, id: el.id||'', className: (el.className||'').toString().slice(0,60), w: Math.round(rect.width), h: Math.round(rect.height), path: getPath(el)}, '*');
+  }
+  function onClick(e){
+    if(!inspectEnabled) return;
+    if(!lastEl) return;
+    e.preventDefault(); e.stopPropagation();
+    const outer = lastEl.outerHTML ? lastEl.outerHTML.slice(0,200) : '';
+    parent.postMessage({type:'inspect-click', tag: lastEl.tagName.toLowerCase(), outer: outer}, '*');
+  }
+  window.addEventListener('mousemove', onMove, true);
+  window.addEventListener('click', onClick, true);
+  window.addEventListener('message', function(ev){
+    if(ev.data && ev.data.type==='inspect-toggle'){
+      inspectEnabled = !!ev.data.enabled;
+      ensureUI();
+      if(!inspectEnabled){ overlay.style.display='none'; tooltip.style.display='none'; }
+    }
+  });
+  // errors
+  window.addEventListener('error', function(e){ parent.postMessage({type:'code-error', message: '❌ '+e.message+' (baris '+e.lineno+')'}, '*'); });
+  window.addEventListener('unhandledrejection', function(e){ parent.postMessage({type:'code-error', message: '❌ Promise: '+(e.reason&&e.reason.message?e.reason.message:e.reason)}, '*'); });
+})();
+<\/script>
+`;
+    const js = jsRaw.replace(/<\/script/gi, "<\\/script");
+    return '<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Hasil</title><style>\n'+css+'\n</style>'+coreScript+'</head><body>\n'+htmlCode.value+'\n<script>\n'+js+'\n<\/script></body></html>';
+  }
+
+  function checkSyntax(){
+    try{ if(jsCode.value.trim()) new Function(jsCode.value); return true; }catch(err){ showError('⚠️ Syntax Error JS: '+err.message); return false; }
+  }
+
+  function updatePreview(){
+    clearErrors(); checkSyntax();
+    preview.srcdoc = buildDocument();
+    const active=document.querySelector(".editor.active");
+    document.getElementById("charCount").textContent=(active?active.value.length:0).toLocaleString("id-ID")+" karakter";
+    if(searchInput.value) runSearch(false);
+    // re-enable inspect after load
+    preview.addEventListener('load', function onLoad(){
+      preview.removeEventListener('load', onLoad);
+      setTimeout(()=>{ try{ preview.contentWindow.postMessage({type:'inspect-toggle', enabled: inspectEnabled}, '*'); }catch(_){} }, 300);
+    });
+  }
+
+  document.querySelectorAll(".tab").forEach(tab=>{
+    tab.addEventListener("click", ()=>{
+      document.querySelectorAll(".tab").forEach(t=>{ const sel=t===tab; t.classList.toggle("active", sel); t.setAttribute("aria-selected", String(sel)); });
+      editors.forEach(ed=>ed.classList.toggle("active", ed.id===tab.dataset.target));
+      document.getElementById("activeLanguage").textContent="Mode "+tabNames[tab.dataset.target];
+      updatePreview();
+      setTimeout(()=>{ if(searchInput.value) runSearch(false); },0);
+    });
+  });
+
+  function getActiveEditor(){ return document.querySelector(".editor.active"); }
+  function escapeRegExp(s){ return s.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&'); }
+  function runSearch(jump=true){
+    const q=searchInput.value; const ed=getActiveEditor(); if(!ed){ matches=[]; searchMeta.textContent="0 ditemukan"; return; }
+    if(!q){ matches=[]; currentIndex=-1; searchMeta.textContent="0 ditemukan"; return; }
+    let pat=escapeRegExp(q); if(wholeWord.checked) pat="\\b"+pat+"\\b"; const flags=caseSensitive.checked?"g":"gi"; const re=new RegExp(pat,flags);
+    matches=[]; let m; while((m=re.exec(ed.value))!==null){ matches.push({start:m.index,end:m.index+m[0].length}); if(m[0].length===0) re.lastIndex++; }
+    if(matches.length===0){ currentIndex=-1; searchMeta.textContent="0 ditemukan"; return; }
+    if(jump){ if(currentIndex<0||currentIndex>=matches.length) currentIndex=0; selectMatch(currentIndex); } else { if(currentIndex>=matches.length) currentIndex=matches.length-1; searchMeta.textContent=(currentIndex>=0?currentIndex+1:0)+" / "+matches.length; }
+    if(currentIndex>=0) searchMeta.textContent=(currentIndex+1)+" / "+matches.length+" ditemukan"; else searchMeta.textContent=matches.length+" ditemukan";
+  }
+  function selectMatch(idx){
+    if(matches.length===0) return; currentIndex=((idx%matches.length)+matches.length)%matches.length;
+    const ed=getActiveEditor(); const mt=matches[currentIndex]; ed.focus(); ed.setSelectionRange(mt.start,mt.end);
+    const lh=23; const lines=ed.value.slice(0,mt.start).split("\n").length; ed.scrollTop=Math.max(0,(lines-5)*lh);
+    searchMeta.textContent=(currentIndex+1)+" / "+matches.length+" ditemukan";
+  }
+  function replaceCurrent(){
+    if(!searchInput.value||matches.length===0){ notify("Tidak ada yang diganti"); return; }
+    if(currentIndex<0) currentIndex=0; const ed=getActiveEditor(); const mt=matches[currentIndex];
+    ed.value=ed.value.slice(0,mt.start)+replaceInput.value+ed.value.slice(mt.end);
+    runSearch(false); updatePreview(); notify("1 diganti");
+  }
+  function replaceAll(){
+    if(!searchInput.value){ notify("Isi kata yang mau dicari"); return; }
+    const ed=getActiveEditor(); let pat=escapeRegExp(searchInput.value); if(wholeWord.checked) pat="\\b"+pat+"\\b"; const re=new RegExp(pat, caseSensitive.checked?"g":"gi");
+    const cnt=(ed.value.match(re)||[]).length; if(cnt===0){ notify("Tidak ada yang cocok"); return; }
+    if(!confirm(`Ganti ${cnt} kemunculan "${searchInput.value}" dengan "${replaceInput.value}" di ${tabNames[ed.id]}?`)) return;
+    ed.value=ed.value.replace(re, replaceInput.value); matches=[]; currentIndex=-1; runSearch(false); updatePreview(); notify(cnt+" kata diganti");
+  }
+  searchInput.addEventListener("input", ()=>runSearch(true));
+  caseSensitive.addEventListener("change", ()=>runSearch(true));
+  wholeWord.addEventListener("change", ()=>runSearch(true));
+  nextBtn.addEventListener("click", ()=>{ if(matches.length===0) runSearch(true); else selectMatch(currentIndex+1); });
+  prevBtn.addEventListener("click", ()=>{ if(matches.length===0) runSearch(true); else selectMatch(currentIndex-1); });
+  replaceBtn.addEventListener("click", replaceCurrent);
+  replaceAllBtn.addEventListener("click", replaceAll);
+  searchInput.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); e.shiftKey?selectMatch(currentIndex-1):(matches.length===0?runSearch(true):selectMatch(currentIndex+1)); } });
+  replaceInput.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); replaceCurrent(); } });
+  document.addEventListener("keydown", e=>{
+    if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="f"){ e.preventDefault(); searchInput.focus(); searchInput.select(); }
+    if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="h"){ e.preventDefault(); replaceInput.focus(); }
+    if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="i"){ e.preventDefault(); toggleInspect(); }
+    if(e.key==="Escape"){ clearErrors(); if(inspectEnabled) toggleInspect(); }
+  });
+  editors.forEach(ed=>ed.addEventListener("input", updatePreview));
+  document.getElementById("refreshBtn").addEventListener("click", ()=>{ updatePreview(); notify("Preview dijalankan"); });
+  document.getElementById("downloadBtn").addEventListener("click", ()=>{
+    const blob=new Blob([buildDocument()], {type:"text/html;charset=utf-8"}); const url=URL.createObjectURL(blob);
+    const a=document.createElement("a"); a.href=url; a.download="hasil-code-studio.html"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000); notify("File siap diunduh");
+  });
+  document.getElementById("resetBtn").addEventListener("click", ()=>{
+    if(!confirm("Kembalikan ke awal?")) return;
+    editors.forEach((ed,i)=>ed.value=defaults[i]);
+    document.querySelectorAll(".tab").forEach((tab,i)=>{ tab.classList.toggle("active", i===0); tab.setAttribute("aria-selected", String(i===0)); });
+    editors.forEach((ed,i)=>ed.classList.toggle("active", i===0));
+    document.getElementById("activeLanguage").textContent="Mode HTML"; updatePreview(); notify("Reset berhasil");
+  });
+  updatePreview();
+})();
+</script>
+</body>
+</html>
